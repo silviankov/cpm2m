@@ -1,0 +1,59 @@
+#!/bin/bash
+
+params=("$@")
+paramNr=$#; # echo $paramNr
+paramNrLoop=$(($paramNr - 1)); # echo $paramNrLoop
+
+pozSrc=0
+pozDest=0
+pozSrcStart=0
+pozSrcStop=0
+pozDestStart=0
+pozDestStop=0
+exitFlag=0
+
+declare -a srcArray; srcArray=()
+declare -a destArray; destArray=()
+
+helpMsg="Script that copies from multiple sources to multiple destinations. Use flag -s followed by the source files and or folders and flag -d followed by the destination locations"
+
+for i in "${!params[@]}"; do
+	[ "${params[$i]}" == "-h" -o "${params[$i]}" == "--help" ] && echo $helpMsg && exitFlag=1 && break
+done
+
+[ $exitFlag -eq 1 ] && exit 0
+
+for i in "${!params[@]}"; do
+	[ "${params[$i]}" == "-s" ] && pozSrc=$i
+	[ "${params[$i]}" == "-d" ] && pozDest=$i && break
+done
+
+if [[ $pozSrc -lt $pozDest ]]
+then
+	pozSrcStart=$(($pozSrc + 1))
+	pozSrcStop=$(($pozDest - 1))
+	pozDestStart=$(($pozDest + 1))
+	pozDestStop=$paramNrLoop
+fi
+
+if [[ $pozSrc -gt $pozDest ]]
+then
+	pozSrcStart=$(($pozSrc + 1))
+	pozDestStop=$(($pozSrc - 1))
+	pozDestStart=$(($pozDest + 1))
+	pozSrcStop=$paramNrLoop
+fi
+
+for ((i=$pozSrcStart; i<=$pozSrcStop; i++)); do
+	srcArray+=("${params[$i]}")
+done
+
+for ((i=$pozDestStart; i<=$pozDestStop; i++)); do
+	destArray+=("${params[$i]}")
+done
+
+for destLoop in "${destArray[@]}"; do
+	cp -r -t "$destLoop" "${srcArray[@]}"
+done
+
+
